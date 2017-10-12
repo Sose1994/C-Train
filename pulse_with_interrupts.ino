@@ -1,3 +1,5 @@
+//Playing around with interrupts
+
 char pin_stateness = 0;
 char OUTPTN = 5;
 char previousness = 0;
