@@ -4,6 +4,7 @@ char pin_stateness = 0;
 char OUTPTN = 5;
 char previousness = 0;
 char whichBit = 0;
+char previousBit = 0;
 
 void setup() 
 {
@@ -20,19 +21,6 @@ void loop()
 
 ISR(TIMER2_COMPA_vect)
 {
-	//Write 1's
-	if (pin_stateness == 0)
-	{
-		digitalWrite(OUTPTN, HIGH);
-		pin_stateness = 1;
-	}
-	else  
-	{
-		digitalWrite(OUTPTN, LOW);
-		pin_stateness = 0;
-	}
-
-
 	if (whichBit == 0)
 	{
 		//Write 0's
@@ -49,6 +37,7 @@ ISR(TIMER2_COMPA_vect)
 			digitalWrite(OUTPTN, LOW);
 			pin_stateness = 0;
 			previousness = 1;
+
 		}
 
 		else if (previousness == 0 && pin_stateness == 1)
@@ -63,11 +52,13 @@ ISR(TIMER2_COMPA_vect)
 			digitalWrite(OUTPTN, LOW);
 			pin_stateness = 0;
 			previousness = 0; 
+			whichBit = 1;   //Change to 1 bit making
 		}	
 	}
 	else if (whichBit == 1)
 	{
-			if (pin_stateness == 0)
+		//Write 1's
+		if (pin_stateness == 0)
 		{
 			digitalWrite(OUTPTN, HIGH);
 			pin_stateness = 1;
@@ -76,11 +67,27 @@ ISR(TIMER2_COMPA_vect)
 		{
 			digitalWrite(OUTPTN, LOW);
 			pin_stateness = 0;
+			
+			whichBit = 0; // Change to 0 bit making
 		}
 	}
+
+	if (previousBit == 0 && whichBit == 0)
+	{
+		whichBit = 1;
+		previousBit = 0;
+	}
+	else if (previousBit == 0 & whichBit == 1)
+	{
+		whichBit = 0;
+		previousBit = 1;
+	}
+	else if (previousBit == 1 && whichBit == 0)
+	{
+		whichBit = 0;
+		previousBit = 0;
+	}
 }
-
-
 
 void timer2_setup() 
 {
