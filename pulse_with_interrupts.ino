@@ -21,6 +21,7 @@ void loop()
 
 ISR(TIMER2_COMPA_vect)
 {
+	//Write 0101010101010101010101
 	if (whichBit == 0)
 	{
 		//Write 0's
@@ -72,6 +73,7 @@ ISR(TIMER2_COMPA_vect)
 		}
 	}
 
+	//Write 001001001001001
 	if (previousBit == 0 && whichBit == 0)
 	{
 		whichBit = 1;
