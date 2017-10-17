@@ -4,7 +4,10 @@ char pin_stateness = 0;
 char OUTPTN = 5;
 char previousness = 0;
 char whichBit = 0;
-char previousBit = 0;
+char 8bits = 0;
+
+char prevHighOrLow = 0;
+char highOrLow = 0;
 
 void setup() 
 {
@@ -22,7 +25,7 @@ void loop()
 ISR(TIMER2_COMPA_vect)
 {
 	//Write 0101010101010101010101
-	if (whichBit == 0)
+	/*if (whichBit == 0)
 	{
 		//Write 0's
 		if (previousness == 0 && pin_stateness == 0)
@@ -48,7 +51,7 @@ ISR(TIMER2_COMPA_vect)
 			previousness = 1;
 		}
 
-		else if (previousness == 1 && pin_stateness == 0;)
+		else if (previousness == 1 && pin_stateness == 0)
 		{
 			digitalWrite(OUTPTN, LOW);
 			pin_stateness = 0;
@@ -88,7 +91,60 @@ ISR(TIMER2_COMPA_vect)
 	{
 		whichBit = 0;
 		previousBit = 0;
+	}*/
+
+	if (8bits < 8 && whichBit == 0)
+	{
+		if (prevHighOrLow == 0 && highOrLow == 0)
+		{
+			digitalWrite(OUTPTN, HIGH);
+			prevHighOrLow = 0;
+			highOrLow = 1;
+		}
+
+	 	else if (prevHighOrLow == 0 && highOrLow == 1)
+		{
+			digitalWrite(OUTPTN, HIGH);
+			prevHighOrLow = 1;
+			highOrLow = 1;
+		}
+
+		else if (prevHighOrLow == 1 && highOrLow == 1)
+		{
+			digitalWrite(OUTPTN, LOW);
+			prevHighOrLow = 1;
+			highOrLow = 0;
+		}
+
+		else if (prevHighOrLow == 1 && highOrLow == 0)
+		{
+			digitalWrite(OUTPTN, LOW);
+			prevHighOrLow = 0;
+			highOrLow = 0;
+			8bits++;
+
+			if (8bits => 8) whichBit = 1;
+		}
 	}
+	else if (8bits < 8 && whichBit == 1)
+	{
+		if (highOrLow == 1)
+		{
+			digitalWrite(OUTPTN, LOW);
+			highOrLow = 0;
+		}
+		else if (highOrLow == 0)
+		{
+			digitalWrite(OUTPTN, HIGH);
+			highOrLow = 1;
+			8bits++;
+
+			if (8bits => 8) whichBit = 0;
+		}
+	}
+
+
+	
 }
 
 void timer2_setup() 
