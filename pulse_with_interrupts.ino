@@ -21,11 +21,30 @@ void loop()
 
 }
 
+void zeroZeroOne()
+{
+	//Write 001001001001001
+	if (previousBit == 0 && whichBit == 0)
+	{
+		whichBit = 1;
+		previousBit = 0;
+	}
+	else if (previousBit == 0 & whichBit == 1)
+	{
+		whichBit = 0;
+		previousBit = 1;
+	}
+	else if (previousBit == 1 && whichBit == 0)
+	{
+		whichBit = 0;
+		previousBit = 0;
+	}
+}
 
-ISR(TIMER2_COMPA_vect)
+void alternating0and1()
 {
 	//Write 0101010101010101010101
-	/*if (whichBit == 0)
+	if (whichBit == 0)
 	{
 		//Write 0's
 		if (previousness == 0 && pin_stateness == 0)
@@ -75,24 +94,10 @@ ISR(TIMER2_COMPA_vect)
 			whichBit = 0; // Change to 0 bit making
 		}
 	}
+}
 
-	//Write 001001001001001
-	if (previousBit == 0 && whichBit == 0)
-	{
-		whichBit = 1;
-		previousBit = 0;
-	}
-	else if (previousBit == 0 & whichBit == 1)
-	{
-		whichBit = 0;
-		previousBit = 1;
-	}
-	else if (previousBit == 1 && whichBit == 0)
-	{
-		whichBit = 0;
-		previousBit = 0;
-	}*/
-
+void write8zerosOrOnes()
+{
 	if (8bits < 8 && whichBit == 0)
 	{
 		if (prevHighOrLow == 0 && highOrLow == 0)
@@ -123,7 +128,11 @@ ISR(TIMER2_COMPA_vect)
 			highOrLow = 0;
 			8bits++;
 
-			if (8bits => 8) whichBit = 1;
+			if (8bits => 8) 
+			{
+				whichBit = 1;
+				8bits = 0;
+			}
 		}
 	}
 	else if (8bits < 8 && whichBit == 1)
@@ -139,11 +148,19 @@ ISR(TIMER2_COMPA_vect)
 			highOrLow = 1;
 			8bits++;
 
-			if (8bits => 8) whichBit = 0;
-		}
+			if (8bits => 8) 
+			{
+				whichBit = 0;
+				8bits = 0;
+			}
 	}
+}
 
 
+void 
+
+ISR(TIMER2_COMPA_vect)
+{
 	
 }
 
