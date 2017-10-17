@@ -4,8 +4,8 @@ char pin_stateness = 0;
 char OUTPTN = 5;
 char previousness = 0;
 char whichBit = 0;
-char 8bits = 0;
-
+char eightBits = 0;
+char previousBit = 0;
 char prevHighOrLow = 0;
 char highOrLow = 0;
 
@@ -98,7 +98,7 @@ void alternating0and1()
 
 void write8zerosOrOnes()
 {
-	if (8bits < 8 && whichBit == 0)
+	if (eightBits < 8 && whichBit == 0)
 	{
 		if (prevHighOrLow == 0 && highOrLow == 0)
 		{
@@ -126,16 +126,16 @@ void write8zerosOrOnes()
 			digitalWrite(OUTPTN, LOW);
 			prevHighOrLow = 0;
 			highOrLow = 0;
-			8bits++;
+			eightBits++;
 
-			if (8bits => 8) 
+			if (eightBits >= 8) 
 			{
 				whichBit = 1;
-				8bits = 0;
+				eightBits = 0;
 			}
 		}
 	}
-	else if (8bits < 8 && whichBit == 1)
+	else if (eightBits < 8 && whichBit == 1)
 	{
 		if (highOrLow == 1)
 		{
@@ -146,22 +146,20 @@ void write8zerosOrOnes()
 		{
 			digitalWrite(OUTPTN, HIGH);
 			highOrLow = 1;
-			8bits++;
+			eightBits++;
 
-			if (8bits => 8) 
+			if (eightBits >= 8) 
 			{
 				whichBit = 0;
-				8bits = 0;
+				eightBits = 0;
 			}
+		}
 	}
 }
 
-
-void 
-
 ISR(TIMER2_COMPA_vect)
 {
-	
+	write8zerosOrOnes();
 }
 
 void timer2_setup() 
