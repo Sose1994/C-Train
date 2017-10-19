@@ -9,6 +9,9 @@ char previousBit = 0;
 char prevHighOrLow = 0;
 char highOrLow = 0;
 
+unsigned char whichByteToSend = 36;
+unsigned char bitMask = 128; 
+
 void setup() 
 {
   // put your setup code here, to run once:
@@ -225,10 +228,6 @@ void write8byte()
 
 void sendByte()
 {
-	unsigned char whichByteToSend = 36;
-
-	unsigned char bitMask = 128; 
-
 	if (whichByteToSend & bitMask == 0)
 	{
 		if (prevHighOrLow == 0 && highOrLow == 0)
@@ -257,10 +256,10 @@ void sendByte()
 			digitalWrite(OUTPTN, LOW);
 			prevHighOrLow = 0;
 			highOrLow = 0;
-			bitMask = bitMask/2;
+			bitMask = bitMask >> 1;
 		}
 	}
-	else if (whichByteToSend & bitMask == 1)
+	else if (whichByteToSend & bitMask > 1)
 	{
 		if (highOrLow == 1)
 		{
@@ -271,8 +270,13 @@ void sendByte()
 		{
 			digitalWrite(OUTPTN, HIGH);
 			highOrLow = 1;
-			bitMask = bitMask/2;
+			bitMask = bitMask >> 1;
 		}
+	}
+
+	if (bitMask == 0)
+	{
+		bitMask = 128;
 	}
 }
 
