@@ -8,10 +8,14 @@ char countToEight = 0;
 char previousBit = 0;
 char prevHighOrLow = 0;
 char highOrLow = 0;
-char preambleCount = 0;
+char counter = 0;
 
+char state 0;
 unsigned char whichByteToSend = 36;
 unsigned char bitMask = 128; 
+
+unsigned char bunchOfOnes = 0xff;
+unsigned char bunchOfZeros = 0x00;
 
 void setup() 
 {
@@ -281,32 +285,57 @@ void sendByte()
 	}
 }
 
-void sendPreambleAndAddress()
+void sendPreambeAnd3Byte()
 {
-	if (highOrLow == 1)
+	switch (state)
 	{
-			digitalWrite(OUTPTN, LOW);
-			highOrLow = 0;
-			preambleCount++;
-	}
-	else if (highOrLow == 0)
-	{
-			digitalWrite(OUTPTN, HIGH);
-			highOrLow = 1;
-	}
+		case 0: if (highOrLow == 0)
+				{
+					digitalWrite(OUTPTN, HIGH);
+					highOrLow = 1;
+				}
+				else if (highOrLow == 1)
+				{
+					digitalWrite(OUTPTN, LOW);
+					highOrLow = 0;
+					counter++;
+				}
 
-	if (preambleCount == 13)
-	{
-		if (whichByteToSend & bitMask == 0)
-		{
+				if (counter == 13)
+				{
+					state = 1;
+				}
+				break;
+
+		case 1:
+		case 3: 
+				if (highOrLow == 0)
+				{
+					digitalWrite(OUTPTN, HIGH);
+					highOrLow = 1;
+				}
+				else if (highOrLow == 1)
+				{
+					digitalWrite(OUTPTN, LOW);
+					highOrLow = 0;
+					counter++;
+				}
+
+				if (counter == 8)
+				{
+					state = 2;
+				}
+				break;
+
+		case 2:
 			if (prevHighOrLow == 0 && highOrLow == 0)
 			{
-				digitalWrite(OUTPTN, HIGH);
-				prevHighOrLow = 0;
-				highOrLow = 1;
+			digitalWrite(OUTPTN, HIGH);
+			prevHighOrLow = 0;
+			highOrLow = 1;
 			}
 
-		 	else if (prevHighOrLow == 0 && highOrLow == 1)
+	 		else if (prevHighOrLow == 0 && highOrLow == 1)
 			{
 				digitalWrite(OUTPTN, HIGH);
 				prevHighOrLow = 1;
@@ -325,28 +354,14 @@ void sendPreambleAndAddress()
 				digitalWrite(OUTPTN, LOW);
 				prevHighOrLow = 0;
 				highOrLow = 0;
-				bitMask = bitMask >> 1;
+				counter++;
 			}
-		}
-		else if (whichByteToSend & bitMask > 1)
-		{
-			if (highOrLow == 1)
-			{
-				digitalWrite(OUTPTN, LOW);
-				highOrLow = 0;
-			}
-			else if (highOrLow == 0)
-			{
-				digitalWrite(OUTPTN, HIGH);
-				highOrLow = 1;
-				bitMask = bitMask >> 1;
-			}
-		}
 
-		if (bitMask == 0)
-		{
-			bitMask = 128;
-		}
+			if (counter == 8)
+			{
+				state = 0;
+			}
+	}
 }
 
 ISR(TIMER2_COMPA_vect)
