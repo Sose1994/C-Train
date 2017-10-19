@@ -194,8 +194,8 @@ void write8byte()
 
 			if (countToEight >= 8) 
 			{
-				whichBit = 1;
 				countToEight = 0;
+				whichBit = array[countToEight];
 			}
 		}
 	}
@@ -216,7 +216,7 @@ void write8byte()
 			if (countToEight >= 8) 
 			{
 				whichBit = 0;
-				countToEight = 0;
+				whichBit = array[countToEight];
 			}
 		}
 	}
