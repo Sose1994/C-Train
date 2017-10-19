@@ -8,6 +8,7 @@ char countToEight = 0;
 char previousBit = 0;
 char prevHighOrLow = 0;
 char highOrLow = 0;
+char preambleCount = 0;
 
 unsigned char whichByteToSend = 36;
 unsigned char bitMask = 128; 
@@ -278,6 +279,74 @@ void sendByte()
 	{
 		bitMask = 128;
 	}
+}
+
+void sendPreambleAndAddress()
+{
+	if (highOrLow == 1)
+	{
+			digitalWrite(OUTPTN, LOW);
+			highOrLow = 0;
+			preambleCount++;
+	}
+	else if (highOrLow == 0)
+	{
+			digitalWrite(OUTPTN, HIGH);
+			highOrLow = 1;
+	}
+
+	if (preambleCount == 13)
+	{
+		if (whichByteToSend & bitMask == 0)
+		{
+			if (prevHighOrLow == 0 && highOrLow == 0)
+			{
+				digitalWrite(OUTPTN, HIGH);
+				prevHighOrLow = 0;
+				highOrLow = 1;
+			}
+
+		 	else if (prevHighOrLow == 0 && highOrLow == 1)
+			{
+				digitalWrite(OUTPTN, HIGH);
+				prevHighOrLow = 1;
+				highOrLow = 1;   
+			}
+
+			else if (prevHighOrLow == 1 && highOrLow == 1)
+			{
+				digitalWrite(OUTPTN, LOW);
+				prevHighOrLow = 1;
+				highOrLow = 0;
+			}
+
+			else if (prevHighOrLow == 1 && highOrLow == 0)
+			{
+				digitalWrite(OUTPTN, LOW);
+				prevHighOrLow = 0;
+				highOrLow = 0;
+				bitMask = bitMask >> 1;
+			}
+		}
+		else if (whichByteToSend & bitMask > 1)
+		{
+			if (highOrLow == 1)
+			{
+				digitalWrite(OUTPTN, LOW);
+				highOrLow = 0;
+			}
+			else if (highOrLow == 0)
+			{
+				digitalWrite(OUTPTN, HIGH);
+				highOrLow = 1;
+				bitMask = bitMask >> 1;
+			}
+		}
+
+		if (bitMask == 0)
+		{
+			bitMask = 128;
+		}
 }
 
 ISR(TIMER2_COMPA_vect)
