@@ -160,7 +160,6 @@ void write8zerosOrOnes()
 void write8byte()
 {
 	unsigned char array[8] = {0, 0, 1, 0, 0, 1, 0, 0};
-	unsigned char arraySize = list.size();
 
 	whichBit = array[eightBits];
 
