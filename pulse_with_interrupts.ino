@@ -223,6 +223,59 @@ void write8byte()
 
 }
 
+void sendByte()
+{
+	unsigned char whichByteToSend = 36;
+
+	unsigned char bitMask = 128; 
+
+	if (whichByteToSend & bitMask == 0)
+	{
+		if (prevHighOrLow == 0 && highOrLow == 0)
+		{
+			digitalWrite(OUTPTN, HIGH);
+			prevHighOrLow = 0;
+			highOrLow = 1;
+		}
+
+	 	else if (prevHighOrLow == 0 && highOrLow == 1)
+		{
+			digitalWrite(OUTPTN, HIGH);
+			prevHighOrLow = 1;
+			highOrLow = 1;   
+		}
+
+		else if (prevHighOrLow == 1 && highOrLow == 1)
+		{
+			digitalWrite(OUTPTN, LOW);
+			prevHighOrLow = 1;
+			highOrLow = 0;
+		}
+
+		else if (prevHighOrLow == 1 && highOrLow == 0)
+		{
+			digitalWrite(OUTPTN, LOW);
+			prevHighOrLow = 0;
+			highOrLow = 0;
+			bitMask = bitMask/2;
+		}
+	}
+	else if (whichByteToSend & bitMask == 1)
+	{
+		if (highOrLow == 1)
+		{
+			digitalWrite(OUTPTN, LOW);
+			highOrLow = 0;
+		}
+		else if (highOrLow == 0)
+		{
+			digitalWrite(OUTPTN, HIGH);
+			highOrLow = 1;
+			bitMask = bitMask/2;
+		}
+	}
+}
+
 ISR(TIMER2_COMPA_vect)
 {
 	write8zerosOrOnes();
