@@ -111,7 +111,7 @@ void write8zerosOrOnes()
 		{
 			digitalWrite(OUTPTN, HIGH);
 			prevHighOrLow = 1;
-			highOrLow = 1;
+			highOrLow = 1;   
 		}
 
 		else if (prevHighOrLow == 1 && highOrLow == 1)
@@ -155,6 +155,73 @@ void write8zerosOrOnes()
 			}
 		}
 	}
+}
+
+void write8byte()
+{
+	unsigned char array[8] = {0, 0, 1, 0, 0, 1, 0, 0};
+	unsigned char arraySize = list.size();
+
+	whichBit = array[eightBits];
+
+	if (eightBits < 8 && whichBit == 0)
+	{
+		if (prevHighOrLow == 0 && highOrLow == 0)
+		{
+			digitalWrite(OUTPTN, HIGH);
+			prevHighOrLow = 0;
+			highOrLow = 1;
+		}
+
+	 	else if (prevHighOrLow == 0 && highOrLow == 1)
+		{
+			digitalWrite(OUTPTN, HIGH);
+			prevHighOrLow = 1;
+			highOrLow = 1;   
+		}
+
+		else if (prevHighOrLow == 1 && highOrLow == 1)
+		{
+			digitalWrite(OUTPTN, LOW);
+			prevHighOrLow = 1;
+			highOrLow = 0;
+		}
+
+		else if (prevHighOrLow == 1 && highOrLow == 0)
+		{
+			digitalWrite(OUTPTN, LOW);
+			prevHighOrLow = 0;
+			highOrLow = 0;
+			eightBits++;
+
+			if (eightBits >= 8) 
+			{
+				whichBit = 1;
+				eightBits = 0;
+			}
+		}
+	}
+	else if (eightBits < 8 && whichBit == 1)
+	{
+		if (highOrLow == 1)
+		{
+			digitalWrite(OUTPTN, LOW);
+			highOrLow = 0;
+		}
+		else if (highOrLow == 0)
+		{
+			digitalWrite(OUTPTN, HIGH);
+			highOrLow = 1;
+			eightBits++;
+
+			if (eightBits >= 8) 
+			{
+				whichBit = 0;
+				eightBits = 0;
+			}
+		}
+	}
+
 }
 
 ISR(TIMER2_COMPA_vect)
