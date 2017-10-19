@@ -321,9 +321,13 @@ void sendPreambeAnd3Byte()
 					counter++;
 				}
 
-				if (counter == 8)
+				if (counter == 8 && state == 1)
 				{
 					state = 2;
+				}
+				else if (counter == 8 && state == 3)
+				{
+					state = 0;
 				}
 				break;
 
@@ -359,7 +363,7 @@ void sendPreambeAnd3Byte()
 
 			if (counter == 8)
 			{
-				state = 0;
+				state = 3;
 			}
 	}
 }
