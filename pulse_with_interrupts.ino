@@ -31,55 +31,67 @@ void loop()
 
 void preamblePacketWithSkille()
 {
-	switch (state)
+	do 
 	{
-		case 0: whichBit = 1;
+		isRunAgain = false;
 
-				if (counter == 13)
-				{
-					whichBit = 0
-				}
-				else if (counter == 14)
-				{
-					state = 1;
-				}
-				break;
+		switch (state)
+		{
+			case 0: whichBit = 1;
 
-		case 1:
-		case 3: 
-				whichBit = 1;
+					if (counter == 13)
+					{
+						whichBit = 0
+					}
+					else if (counter == 14)
+					{
+						state = 1;
+						isRunAgain = true;
+					}
+					break;
 
-				if (counter == 8 && state == 1)
+			case 1:
+			case 3: 
+					whichBit = 1;
+
+					if (counter == 8 && state == 1)
+					{
+						whichBit = 0;
+					}
+					else if (counter == 9 && state == 1)
+					{
+						state = 2;	
+						isRunAgain = true;			
+					}
+					else if (counter == 8 && state == 3)
+					{
+						whichBit = 1;
+					}
+					else if (counter == 9 && state == 3)
+					{
+						state = 0;
+						isRunAgain = true;
+					}
+					break;
+
+			case 2:
+				whichBit = 0;
+
+				if (counter == 8)
 				{
 					whichBit = 0;
 				}
-				else if (counter == 9 && state == 1)
+				else if (counter == 9)
 				{
-					state = 2;				
-				}
-				else if (counter == 8 && state == 3)
-				{
-					whichBit = 1;
-				}
-				else if (counter == 9 && state == 3)
-				{
-					state = 0;
+					state = 3;
+					isRunAgain = true;
 				}
 				break;
+		}
 
-		case 2:
-			whichBit = 0;
-
-			if (counter == 8)
-			{
-				whichBit = 0;
-			}
-			else if (counter == 9)
-			{
-				state = 3;
-			}
-			break;
 	}
+	while (isRunAgain == true);
+
 
 	if (whichBit == 0)
 	{
@@ -127,7 +139,6 @@ void preamblePacketWithSkille()
 			}
 	}
 }
-
 
 
 ISR(TIMER2_COMPA_vect)
