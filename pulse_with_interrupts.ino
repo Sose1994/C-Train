@@ -303,6 +303,9 @@ void sendPreambeAnd3Byte()
 
 				if (counter == 13)
 				{
+					
+
+
 					state = 1;
 				}
 				break;
@@ -367,6 +370,121 @@ void sendPreambeAnd3Byte()
 			}
 	}
 }
+
+void preamblePacketWithSkille()
+{
+	switch (state)
+	{
+		case 0: whichBit = 1;
+
+				if (counter == 13)
+				{
+					whichBit = 0
+
+					state = 1;
+				}
+				break;
+
+		case 1:
+		case 3: 
+				whichBit = 1;
+
+				if (counter == 8 && state == 1)
+				{
+					whichBit
+					state = 2;
+				}
+				else if (counter == 8 && state == 3)
+				{
+					state = 0;
+				}
+				break;
+
+		case 2:
+			if (prevHighOrLow == 0 && highOrLow == 0)
+			{
+			digitalWrite(OUTPTN, HIGH);
+			prevHighOrLow = 0;
+			highOrLow = 1;
+			}
+
+	 		else if (prevHighOrLow == 0 && highOrLow == 1)
+			{
+				digitalWrite(OUTPTN, HIGH);
+				prevHighOrLow = 1;
+				highOrLow = 1;   
+			}
+
+			else if (prevHighOrLow == 1 && highOrLow == 1)
+			{
+				digitalWrite(OUTPTN, LOW);
+				prevHighOrLow = 1;
+				highOrLow = 0;
+			}
+
+			else if (prevHighOrLow == 1 && highOrLow == 0)
+			{
+				digitalWrite(OUTPTN, LOW);
+				prevHighOrLow = 0;
+				highOrLow = 0;
+				counter++;
+			}
+
+			if (counter == 8)
+			{
+				whichBit = 0;
+				state = 3;
+			}
+	}
+
+	if (whichBit == 0)
+	{
+		if (prevHighOrLow == 0 && highOrLow == 0)
+		{
+			digitalWrite(OUTPTN, HIGH);
+			prevHighOrLow = 0;
+			highOrLow = 1;
+			}
+
+	 		else if (prevHighOrLow == 0 && highOrLow == 1)
+			{
+				digitalWrite(OUTPTN, HIGH);
+				prevHighOrLow = 1;
+				highOrLow = 1;   
+			}
+
+			else if (prevHighOrLow == 1 && highOrLow == 1)
+			{
+				digitalWrite(OUTPTN, LOW);
+				prevHighOrLow = 1;
+				highOrLow = 0;
+			}
+
+			else if (prevHighOrLow == 1 && highOrLow == 0)
+			{
+				digitalWrite(OUTPTN, LOW);
+				prevHighOrLow = 0;
+				highOrLow = 0;
+				counter++;
+			}
+	}
+	else if (whichBit == 1)
+	{
+		if (highOrLow == 0)
+				{
+					digitalWrite(OUTPTN, HIGH);
+					highOrLow = 1;
+				}
+				else if (highOrLow == 1)
+				{
+					digitalWrite(OUTPTN, LOW);
+					highOrLow = 0;
+					counter++;
+				}
+	}
+}
+
+
 
 ISR(TIMER2_COMPA_vect)
 {
