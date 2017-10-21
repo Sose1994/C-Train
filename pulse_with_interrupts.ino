@@ -391,50 +391,25 @@ void preamblePacketWithSkille()
 
 				if (counter == 8 && state == 1)
 				{
-					whichBit
+					whichBit = 0;
 					state = 2;
 				}
 				else if (counter == 8 && state == 3)
 				{
+					whichBit = 1;
 					state = 0;
 				}
 				break;
 
 		case 2:
-			if (prevHighOrLow == 0 && highOrLow == 0)
-			{
-			digitalWrite(OUTPTN, HIGH);
-			prevHighOrLow = 0;
-			highOrLow = 1;
-			}
-
-	 		else if (prevHighOrLow == 0 && highOrLow == 1)
-			{
-				digitalWrite(OUTPTN, HIGH);
-				prevHighOrLow = 1;
-				highOrLow = 1;   
-			}
-
-			else if (prevHighOrLow == 1 && highOrLow == 1)
-			{
-				digitalWrite(OUTPTN, LOW);
-				prevHighOrLow = 1;
-				highOrLow = 0;
-			}
-
-			else if (prevHighOrLow == 1 && highOrLow == 0)
-			{
-				digitalWrite(OUTPTN, LOW);
-				prevHighOrLow = 0;
-				highOrLow = 0;
-				counter++;
-			}
+			whichBit = 0;
 
 			if (counter == 8)
 			{
 				whichBit = 0;
 				state = 3;
 			}
+			break;
 	}
 
 	if (whichBit == 0)
@@ -471,16 +446,16 @@ void preamblePacketWithSkille()
 	else if (whichBit == 1)
 	{
 		if (highOrLow == 0)
-				{
-					digitalWrite(OUTPTN, HIGH);
-					highOrLow = 1;
-				}
-				else if (highOrLow == 1)
-				{
-					digitalWrite(OUTPTN, LOW);
-					highOrLow = 0;
-					counter++;
-				}
+			{
+				digitalWrite(OUTPTN, HIGH);
+				highOrLow = 1;
+			}
+			else if (highOrLow == 1)
+			{
+				digitalWrite(OUTPTN, LOW);
+				highOrLow = 0;
+				counter++;
+			}
 	}
 }
 
