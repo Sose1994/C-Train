@@ -52,11 +52,17 @@ void preamblePacketWithSkille()
 				if (counter == 8 && state == 1)
 				{
 					whichBit = 0;
-					state = 2;
+				}
+				else if (counter == 9 && state == 1)
+				{
+					state = 2;				
 				}
 				else if (counter == 8 && state == 3)
 				{
 					whichBit = 1;
+				}
+				else if (counter == 9 && state == 3)
+				{
 					state = 0;
 				}
 				break;
@@ -67,6 +73,9 @@ void preamblePacketWithSkille()
 			if (counter == 8)
 			{
 				whichBit = 0;
+			}
+			else if (counter == 9)
+			{
 				state = 3;
 			}
 			break;
