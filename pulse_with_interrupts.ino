@@ -38,7 +38,9 @@ void preamblePacketWithSkille()
 				if (counter == 13)
 				{
 					whichBit = 0
-
+				}
+				else if (counter == 14)
+				{
 					state = 1;
 				}
 				break;
