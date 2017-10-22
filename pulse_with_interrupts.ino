@@ -1,21 +1,15 @@
 //Playing around with interrupts
 
-char pin_stateness = 0;
 char OUTPTN = 5;
-char previousness = 0;
 char whichBit = 0;
-char countToEight = 0;
-char previousBit = 0;
 char prevHighOrLow = 0;
 char highOrLow = 0;
 char counter = 0;
 
-char state 0;
-unsigned char whichByteToSend = 36;
+unsigned char isRunAgain = false;
 unsigned char bitMask = 128; 
 
-unsigned char bunchOfOnes = 0xff;
-unsigned char bunchOfZeros = 0x00;
+char state 0;
 
 void setup() 
 {
@@ -37,7 +31,8 @@ void preamblePacketWithSkille()
 
 		switch (state)
 		{
-			case 0: whichBit = 1;
+			case 0:
+					whichBit = 1;
 
 					if (counter == 13)
 					{
@@ -51,42 +46,48 @@ void preamblePacketWithSkille()
 					break;
 
 			case 1:
-			case 3: 
-					whichBit = 1;
+					unsigned char address = 36;
+					whichBit = (bitMask & address == 0 ? 0 : 1);
 
-					if (counter == 8 && state == 1)
+					if (counter == 8)
 					{
 						whichBit = 0;
 					}
-					else if (counter == 9 && state == 1)
+					else if (counter == 9)
 					{
-						state = 2;	
-						isRunAgain = true;			
+						state = 2;
+						isRunAgain = true;
 					}
-					else if (counter == 8 && state == 3)
+
+			case 2:
+					unsigned char order = 100;
+					whichBit = (bitMask & order == 0 ? 0 : 1);
+
+					if (counter == 8)
+					{
+						whichBit = 0;
+					}
+					else if (counter == 9)
+					{
+						state = 3;
+						isRunAgain = true;
+					}
+					break;
+
+			case 3:
+					unsigned char checksum address ^ order;
+					whichBit = (bitMask & checksum == 0 ? 0 : 1);
+
+					else if (counter == 8)
 					{
 						whichBit = 1;
 					}
-					else if (counter == 9 && state == 3)
+					else if (counter == 9)
 					{
 						state = 0;
 						isRunAgain = true;
 					}
 					break;
-
-			case 2:
-				whichBit = 0;
-
-				if (counter == 8)
-				{
-					whichBit = 0;
-				}
-				else if (counter == 9)
-				{
-					state = 3;
-					isRunAgain = true;
-				}
-				break;
 		}
 
 	}
