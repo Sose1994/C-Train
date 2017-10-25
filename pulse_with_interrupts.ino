@@ -10,8 +10,8 @@ char countBit = 0;
 unsigned char isRunAgain = false;
 unsigned char bitMask = 128; 
 
-unsigned char address = 36;
-unsigned char order = 0;
+unsigned char address = 0x24;
+unsigned char order = 0x40;
 unsigned char direction = 1;
 unsigned char speed = 13;
 unsigned char checksum  = address ^ order;
@@ -22,7 +22,19 @@ char state = 0;
 void setup() 
 {
   // put your setup code here, to run once:
+		
+		if (direction == 1)
+		{
+			order |= 0x20;
+		}
+		
+		if (1 & speed == 1)
+		{
+			speed |= 0x20;
+		}
 
+		speed >>= 1;
+		order |= speed;
 }
 
 void loop() 
@@ -39,7 +51,7 @@ void preamblePacketWithSkille()
 
 		switch (state)
 		{
-			case 0:
+			case 0: //preamble
 					whichBit = 1;
 
 					if (counter == 13)
@@ -53,7 +65,7 @@ void preamblePacketWithSkille()
 					}
 					break;
 
-			case 1:
+			case 1: //address
 					whichBit = (bitMask & address == 0 ? 0 : 1);
 
 					if (counter == 8)
@@ -66,8 +78,8 @@ void preamblePacketWithSkille()
 						isRunAgain = true;
 					}
 
-			case 2:
-					/*whichBit = (bitMask & direction == 0 ? 0 : 1);
+			case 2: //order
+					whichBit = (bitMask & order == 0 ? 0 : 1);
 
 					if (counter == 8)
 					{
@@ -77,10 +89,10 @@ void preamblePacketWithSkille()
 					{
 						state = 3;
 						isRunAgain = true;
-					}*/
+					}
 					break;
 
-			case 3:
+			case 3: //checksum
 					whichBit = (bitMask & checksum == 0 ? 0 : 1);
 
 					if (counter == 8)
