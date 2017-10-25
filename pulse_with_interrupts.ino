@@ -5,11 +5,19 @@ char whichBit = 0;
 char prevHighOrLow = 0;
 char highOrLow = 0;
 char counter = 0;
+char countBit = 0;
 
 unsigned char isRunAgain = false;
 unsigned char bitMask = 128; 
 
-char state 0;
+unsigned char address = 36;
+unsigned char order = 0;
+unsigned char direction = 1;
+unsigned char speed = 13;
+unsigned char checksum  = address ^ order;
+char ordering = 0;
+
+char state = 0;
 
 void setup() 
 {
@@ -36,7 +44,7 @@ void preamblePacketWithSkille()
 
 					if (counter == 13)
 					{
-						whichBit = 0
+						whichBit = 0;
 					}
 					else if (counter == 14)
 					{
@@ -46,7 +54,6 @@ void preamblePacketWithSkille()
 					break;
 
 			case 1:
-					unsigned char address = 36;
 					whichBit = (bitMask & address == 0 ? 0 : 1);
 
 					if (counter == 8)
@@ -60,8 +67,7 @@ void preamblePacketWithSkille()
 					}
 
 			case 2:
-					unsigned char order = 100;
-					whichBit = (bitMask & order == 0 ? 0 : 1);
+					/*whichBit = (bitMask & direction == 0 ? 0 : 1);
 
 					if (counter == 8)
 					{
@@ -71,14 +77,37 @@ void preamblePacketWithSkille()
 					{
 						state = 3;
 						isRunAgain = true;
+					}*/
+
+					switch (ordering)
+					{ // But I did this wrong, because I'm not supposed to send the bits???
+					  // I am suppposed to put them all in the variable order??? Or not??
+					  // All of this below is wrong, you need to delete it
+						case 0: //01
+								whichBit = 0;
+								countBit++;
+
+								if (countBit != 0)
+								{
+									whichBit = 1;
+									ordering = 1;
+								}
+								break;
+
+						case 1: //direction
+								whichBit = (bitMask & direction == 0 ? 0 : 1);
+								ordering = 2;
+								break;
+
+						case 2: //speed - the part I understand the least
+								break;
 					}
 					break;
 
 			case 3:
-					unsigned char checksum address ^ order;
 					whichBit = (bitMask & checksum == 0 ? 0 : 1);
 
-					else if (counter == 8)
+					if (counter == 8)
 					{
 						whichBit = 1;
 					}
@@ -144,7 +173,7 @@ void preamblePacketWithSkille()
 
 ISR(TIMER2_COMPA_vect)
 {
-	write8zerosOrOnes();
+	
 }
 
 void timer2_setup() 
