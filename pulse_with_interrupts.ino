@@ -78,30 +78,6 @@ void preamblePacketWithSkille()
 						state = 3;
 						isRunAgain = true;
 					}*/
-
-					switch (ordering)
-					{ // But I did this wrong, because I'm not supposed to send the bits???
-					  // I am suppposed to put them all in the variable order??? Or not??
-					  // All of this below is wrong, you need to delete it
-						case 0: //01
-								whichBit = 0;
-								countBit++;
-
-								if (countBit != 0)
-								{
-									whichBit = 1;
-									ordering = 1;
-								}
-								break;
-
-						case 1: //direction
-								whichBit = (bitMask & direction == 0 ? 0 : 1);
-								ordering = 2;
-								break;
-
-						case 2: //speed - the part I understand the least
-								break;
-					}
 					break;
 
 			case 3:
