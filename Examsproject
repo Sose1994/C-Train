@@ -1,0 +1,106 @@
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+int lcd_key = 0;
+int adc_key_in = 0;
+
+#define btnRIGHT  0
+#define btnUP     1
+#define btnDOWN   2
+#define btnLEFT   3
+#define btnSELECT 4
+#define btnNONE   5
+
+int read_LCD_buttons()
+{
+	adc_key_in = analogRead(0);
+
+	if (adc_key_in > 1000) return btnNONE;
+	if (adc_key_in < 50)   return btnRIGHT;
+	if (adc_key_in < 195)  return btnUP;
+	if (adc_key_in < 380)  return btnDOWN;
+	if (adc_key_in < 555)  return btnLEFT;
+	if (adc_key_in < 790)  return btnSELECT;
+	return btnNONE;
+}
+
+void buttonsPushed()
+{
+	switch (lcd_key)
+	{
+		case btnUP: //Trainspeed goes up by 1
+					if (trainSpeed < 30)
+					{
+						trainSpeed++;
+					}
+
+					lcd.setCursor(0, 0);
+					lcd.print("UP           ")
+					
+					Serial.println("UP");
+					Serial.print(trainSpeed);
+
+					lcd.setCursor(0, 1);
+					lcd.print(trainSpeed);
+		
+			break;
+		case btnDOWN: //Trainspeed goes down by 1		
+		  			if (trainSpeed == 0)
+					{
+						trainSpeed = 0;
+					}
+					else 
+					{
+						trainSpeed = trainSpeed - 1;
+					}
+
+		  			lcd.setCursor(0, 0);
+					lcd.print("DOWN");
+					
+					Serial.println("DOWN");
+					Serial.println(trainSpeed);
+					
+					lcd.setCursor(0, 1);
+					lcd.print(trainSpeed);
+			break;
+		case btnLEFT:
+					lcd.setCursor(0, 0);
+					lcd.print("LEFT   ");
+			break;
+		case btnRIGHT:
+					lcd.setCursor(0, 0);
+					lcd.print("RIGHT");
+
+			break;
+		case btnSELECT: //Iterate through the different things to do
+					lcd.setCursor(0, 0);
+					lcd.print("SPEED         ");
+					Serial.println("SPEED");
+			break;
+		case btnNONE:
+			break;
+	}
+}
+
+void setup() 
+{
+  // put your setup code here, to run once:
+	lcd.begin(16, 2);
+	lcd.setCursor(0, 0);
+
+	lcd.print("Embedded C/Tog");
+lcd.setCursor(0, 1);
+	Serial.print(trainSpeed);
+	lcd.print(trainSpeed);
+}
+
+void loop() 
+{
+  // put your main code here, to run repeatedly:
+	lcd_key = read_LCD_buttons();
+	buttonsPushed();
+	delay(300);
+
+
+}
