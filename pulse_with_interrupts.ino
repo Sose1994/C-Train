@@ -19,20 +19,15 @@ char highOrLow = 0;
 char counter = 0;
 
 unsigned char isRunAgain = false;
-
-// 0x80 = 10000000
-unsigned char bitMask = 0x80; 
+unsigned char bitMask = 0x80;       // 0x80 = 10000000
 unsigned char address = 0;
 unsigned char order = 0;
 unsigned char checksum  = 0x0;
 
 char state = 0;
 //-------------------------------------------------------------------------------------------------------------//
-//0x24 = 36, 0x28 = 40
-unsigned char trainAddress = 40;
-
-// 0x40 = 01000000
-unsigned char trainOrder = 0x40;
+unsigned char trainAddress = 40; //0x24 = 36, 0x28 = 40
+unsigned char trainOrder = 0x40; // 0x40 = 01000000
 unsigned char trainDirection = 0x0;
 unsigned char trainSpeed = 8;
 unsigned char DCCspeed = 0;
@@ -50,17 +45,16 @@ unsigned char packetType = 0;
 
 struct Packet
 {
-	address, 
-	order, 
-	order
+	unsigned char address;
+	unsigned char order;
+	unsigned char checksum;
 	
 };
 
 struct Packet livepacket;
-livepacket.address = 36;
+struct Packet *pointerName = &livepacket;
 
-struct Packet *pointerName;
-pointerName = &livepacket;
+void timer2_setup();
 
 int read_LCD_buttons()
 {
@@ -141,8 +135,6 @@ void buttonsPushed()
 			lcd.print("RIGHT");
 			interrupts();
 			Serial.println("RIGHT");
-
-			sendPacket();
 			break;
 
 		case btnSELECT: //Iterate through the different things to do
@@ -159,8 +151,8 @@ void buttonsPushed()
 }
 
 
- void creatingOrder()
- {
+void creatingOrder()
+{
  	DCCspeed = trainSpeed;
 
  	 	//if the direction is set to 1, then
@@ -212,16 +204,16 @@ void buttonsPushed()
 
 	if (packetType == 0)
 	{
-		address = trainAddress;
-		order = trainOrder;
+		livepacket.address = trainAddress;
+		livepacket.order = trainOrder;
 	}
 	else if (packetType == 1)
 	{
-		address = accessoryAddress;
-		order = accessoryOrder;
+		livepacket.address = accessoryAddress;
+		livepacket.order = accessoryOrder;
 	}
-	checksum = address ^ order;
- }
+	livepacket.checksum = livepacket.address ^ livepacket.order;
+}
 
 void setup() 
 {
@@ -258,9 +250,9 @@ void loop()
 void accessoryStuff()
 {
 	accessoryOrder ^=  0x08;
-	order = accessoryOrder;
+	livepacket.order = accessoryOrder;
 
-	checksum = address ^ order;
+	checksum = livepacket.address ^ livepacket.order;
 }
 
 
@@ -294,7 +286,7 @@ void sendPacket()
 					break;
 
 			case 1: //address
-					whichBit = ((bitMask & pointerName -> address == 0 ? 0 : 1); 
+					whichBit = ((bitMask & ((*pointerName).address))== 0 ? 0 : 1); 
 
 					if (counter == 8)
 					{
@@ -307,10 +299,10 @@ void sendPacket()
 						counter = 0;
             			bitMask = 0x80;
 					}
-         break;
+         			break;
 
 			case 2: //order
-					whichBit = ((bitMask & order) == 0 ? 0 : 1);
+					whichBit = ((bitMask & ((*pointerName).order)) == 0 ? 0 : 1);
 
 					if (counter == 8)
 					{
@@ -326,7 +318,7 @@ void sendPacket()
 					break;
 
 			case 3: //checksum
-					whichBit = ((bitMask & checksum) == 0 ? 0 : 1);
+					whichBit = ((bitMask & ((*pointerName).checksum)) == 0 ? 0 : 1);
 
 					if (counter == 8)
 					{
@@ -358,32 +350,32 @@ void sendPacket()
 			digitalWrite(OUTPIN, HIGH);
 			prevHighOrLow = 0;
 			highOrLow = 1;
-			}
+		}
 
-	 		else if (prevHighOrLow == 0 && highOrLow == 1)
-			{
-				digitalWrite(OUTPIN, HIGH);
-				prevHighOrLow = 1;
-				highOrLow = 1;   
-			}
+ 		else if (prevHighOrLow == 0 && highOrLow == 1)
+		{
+			digitalWrite(OUTPIN, HIGH);
+			prevHighOrLow = 1;
+			highOrLow = 1;   
+		}
 
-			else if (prevHighOrLow == 1 && highOrLow == 1)
-			{
-				digitalWrite(OUTPIN, LOW);
-				prevHighOrLow = 1;
-				highOrLow = 0;
-			}
+		else if (prevHighOrLow == 1 && highOrLow == 1)
+		{
+			digitalWrite(OUTPIN, LOW);
+			prevHighOrLow = 1;
+			highOrLow = 0;
+		}
 
-			else if (prevHighOrLow == 1 && highOrLow == 0)
-			{
-				digitalWrite(OUTPIN, LOW);
-				prevHighOrLow = 0;
-				highOrLow = 0;
-				counter++;
-        		bitMask >>= 1;
+		else if (prevHighOrLow == 1 && highOrLow == 0)
+		{
+			digitalWrite(OUTPIN, LOW);
+			prevHighOrLow = 0;
+			highOrLow = 0;
+			counter++;
+    		bitMask >>= 1;
 
-        		Serial.print("0");
-			}
+    		Serial.print("0");
+		}
 	}
 	//If it's 1, send high low, to make a 1 bit
 	else if (whichBit == 1)
@@ -406,7 +398,6 @@ void sendPacket()
 		}
 	}
 }
-
 
 ISR(TIMER2_COMPA_vect)
 {
