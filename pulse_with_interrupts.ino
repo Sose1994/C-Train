@@ -83,8 +83,8 @@ void buttonsPushed()
 			else
 			{
 				trainSpeed = trainSpeed + 1;
-				creatingOrder();
-			}
+			} 
+			creatingOrder();
  
 			noInterrupts();
       		lcd.setCursor(0,0);
@@ -104,8 +104,8 @@ void buttonsPushed()
 			else 
 			{
 				trainSpeed = trainSpeed - 1;
-				creatingOrder();
 			}
+			creatingOrder();
 		
 			noInterrupts();
 		  	lcd.setCursor(0, 0);
@@ -114,6 +114,7 @@ void buttonsPushed()
 			lcd.print(trainSpeed);
 
 			interrupts();
+
 
 			Serial.println("DOWN");
 			Serial.println(trainSpeed);
@@ -143,8 +144,6 @@ void buttonsPushed()
 			lcd.print("SPEED          ");
 			interrupts();
 			Serial.println("SPEED");
-
-			
 			break;
 
 		case btnNONE:
@@ -160,7 +159,7 @@ void creatingOrder()
  	 	//if the direction is set to 1, then
 	if (trainDirection == 1)
 	{
-		trainOrder |= 0x20;
+		livepacket.order |= 0x20;
 	}
 	
 	//
@@ -172,7 +171,7 @@ void creatingOrder()
 	}
 	
 	DCCspeed >>= 1;
-	trainOrder |= DCCspeed;
+	livepacket.order |= DCCspeed;
 	//lcd.setCursor(1, 9);
 	//lcd.print(trainSpeed);
 
