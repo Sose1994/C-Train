@@ -17,30 +17,31 @@ char whichBit = 0;
 char prevHighOrLow = 0;
 char highOrLow = 0;
 char counter = 0;
+char testing = true;
+
 
 unsigned char isRunAgain = false;
 unsigned char bitMask = 0x80;       // 0x80 = 10000000
-unsigned char address = 0;
-unsigned char order = 0;
-unsigned char checksum  = 0x0;
+//unsigned char address = 0;
+//unsigned char order = 0;
+//unsigned char checksum  = 0x0;
 
 char state = 0;
 //-------------------------------------------------------------------------------------------------------------//
 unsigned char trainAddress = 40; //0x24 = 36, 0x28 = 40
-unsigned char trainOrder = 0x40; // 0x40 = 01000000
+//unsigned char trainOrder = 0x40; // 0x40 = 01000000
 unsigned char trainDirection = 0x0;
 unsigned char trainSpeed = 8;
-unsigned char DCCspeed = 0;
-unsigned char trainChecksum = 0x0;
+//unsigned char trainChecksum = 0x0;
 
 //-------------------------------------------------------------------------------------------------------------//
 
 unsigned char accessoryNumber = 101;
-unsigned char accessoryAddress = 0;
+//unsigned char accessoryAddress = 0;
 unsigned char accessoryDirection = 1;
 unsigned char accessoryOutput = 0;
 unsigned char accessorySwitch = 0;
-unsigned char accessoryOrder = 0;
+//unsigned char accessoryOrder = 0;
 unsigned char packetType = 0;
 
 struct Packet
@@ -51,8 +52,20 @@ struct Packet
 	
 };
 
-struct Packet livepacket;
-struct Packet *pointerName = &livepacket;
+enum functionMode
+{
+	ADDRESS,
+	DIRECTION,
+	SPEED,
+	ACC_NUMBER, 
+	ACC_DIRECTION
+};
+
+struct Packet baselinePacket;
+struct Packet idlePacket;
+struct Packet accessoryPacket;
+
+struct Packet *pointerCurrentPacket = &baselinePacket;
 
 void timer2_setup();
 
@@ -83,8 +96,8 @@ void buttonsPushed()
 			else
 			{
 				trainSpeed = trainSpeed + 1;
-			} 
-			creatingOrder();
+				creatingOrder();
+			}
  
 			noInterrupts();
       		lcd.setCursor(0,0);
@@ -92,8 +105,9 @@ void buttonsPushed()
 		  	lcd.setCursor(0, 1);
 			lcd.print(trainSpeed);
 			interrupts();
-			Serial.println("UP");
-			Serial.print(trainSpeed);
+
+			Serial.print("UP ");
+			Serial.println(trainSpeed);
 			break;
 
 		case btnDOWN: //Trainspeed goes down by 1			
@@ -104,19 +118,18 @@ void buttonsPushed()
 			else 
 			{
 				trainSpeed = trainSpeed - 1;
+				creatingOrder();
 			}
-			creatingOrder();
 		
 			noInterrupts();
 		  	lcd.setCursor(0, 0);
 			lcd.print("DOWN           ");
 			lcd.setCursor(0, 1);
 			lcd.print(trainSpeed);
-
 			interrupts();
 
 
-			Serial.println("DOWN");
+			Serial.print("DOWN ");
 			Serial.println(trainSpeed);
 			break;
 
@@ -154,12 +167,16 @@ void buttonsPushed()
 
 void creatingOrder()
 {
+	unsigned char DCCspeed = 0;
+	unsigned char trainOrder = 0x40;
+	unsigned char accessoryOrder = 0;
+	unsigned char accessoryAddress = 0;
  	DCCspeed = trainSpeed;
 
  	 	//if the direction is set to 1, then
 	if (trainDirection == 1)
 	{
-		livepacket.order |= 0x20;
+		trainOrder |= 0x20;
 	}
 	
 	//
@@ -171,7 +188,7 @@ void creatingOrder()
 	}
 	
 	DCCspeed >>= 1;
-	livepacket.order |= DCCspeed;
+	trainOrder |= DCCspeed;
 	//lcd.setCursor(1, 9);
 	//lcd.print(trainSpeed);
 
@@ -179,10 +196,10 @@ void creatingOrder()
 	//Starts at zero, then you divide the accessoryNumber with 4. and plus it one. You set your accessoryAddress to that.
 	//That turns into 00010111
 	accessoryAddress = (accessoryNumber/4) + 1;
-	//After you calculate accessoryAdress, you compare it to 0x80. 
+	//After you calculate accessoryAddress, you compare it to 0x80. 
 	//Meaning a bitwise OR operation...
 
-	// AccessoryAdress - 00010111
+	// AccessoryAddress - 00010111
 	//       0x80      - 01010000
 	//       result      01010111
 	accessoryAddress |= 0x80;
@@ -195,7 +212,7 @@ void creatingOrder()
 
 	// 0xF8 = 11111000
 	//So we put the accessory order to be like the one above since it was 0
-	accessoryOrder = accessoryOrder | 0xF8;
+	accessoryOrder |= 0xF8;
 
 	//Then we first bitshift accessoryoutput 
 	accessoryOrder |= (accessoryOutput << 1);
@@ -205,15 +222,16 @@ void creatingOrder()
 
 	if (packetType == 0)
 	{
-		livepacket.address = trainAddress;
-		livepacket.order = trainOrder;
+		baselinePacket.address = trainAddress;
+		baselinePacket.order = trainOrder;
+		baselinePacket.checksum = baselinePacket.address ^ baselinePacket.order;
 	}
 	else if (packetType == 1)
 	{
-		livepacket.address = accessoryAddress;
-		livepacket.order = accessoryOrder;
+		accessoryPacket.address = accessoryAddress;
+		accessoryPacket.order = accessoryOrder;
+		accessoryPacket.checksum = accessoryPacket.address ^ accessoryPacket.order;
 	}
-	livepacket.checksum = livepacket.address ^ livepacket.order;
 }
 
 void setup() 
@@ -235,7 +253,7 @@ void setup()
 
 	lcd.setCursor(1, 1);
 	lcd.print(trainSpeed);
-	Serial.print(trainSpeed);
+	//Serial.print(trainSpeed);
 
 	timer2_setup();
 }
@@ -244,16 +262,14 @@ void loop()
 {
   // put your main code here, to run repeatedly:
 	lcd_key = read_LCD_buttons();
-	//buttonsPushed();
+	buttonsPushed();
 	delay(300);
 }
 
 void accessoryStuff()
 {
-	accessoryOrder ^=  0x08;
-	livepacket.order = accessoryOrder;
-
-	checksum = livepacket.address ^ livepacket.order;
+	accessoryPacket.order ^=  0x08;
+	accessoryPacket.checksum = accessoryPacket.address ^ accessoryPacket.order;
 }
 
 
@@ -262,6 +278,11 @@ void sendPacket()
 	do 
 	{
 		isRunAgain = false;
+
+		if (testing && counter == 0)
+		{
+			Serial.println();
+		}
 
 		switch (state)
 		{
@@ -287,7 +308,7 @@ void sendPacket()
 					break;
 
 			case 1: //address
-					whichBit = ((bitMask & ((*pointerName).address))== 0 ? 0 : 1); 
+					whichBit = ((bitMask & ((*pointerCurrentPacket).address))== 0 ? 0 : 1); 
 
 					if (counter == 8)
 					{
@@ -303,7 +324,7 @@ void sendPacket()
          			break;
 
 			case 2: //order
-					whichBit = ((bitMask & ((*pointerName).order)) == 0 ? 0 : 1);
+					whichBit = ((bitMask & ((*pointerCurrentPacket).order)) == 0 ? 0 : 1);
 
 					if (counter == 8)
 					{
@@ -319,7 +340,7 @@ void sendPacket()
 					break;
 
 			case 3: //checksum
-					whichBit = ((bitMask & ((*pointerName).checksum)) == 0 ? 0 : 1);
+					whichBit = ((bitMask & ((*pointerCurrentPacket).checksum)) == 0 ? 0 : 1);
 
 					if (counter == 8)
 					{
@@ -375,7 +396,10 @@ void sendPacket()
 			counter++;
     		bitMask >>= 1;
 
-    		Serial.print("0");
+    		if (testing)
+      		{
+      			Serial.print("0");
+      		}
 		}
 	}
 	//If it's 1, send high low, to make a 1 bit
@@ -395,7 +419,10 @@ void sendPacket()
 			counter++;
       		bitMask >>= 1;
 
-      		Serial.print("1");
+      		if (testing)
+      		{
+      			Serial.print("1");
+      		}
 		}
 	}
 }
