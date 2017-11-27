@@ -143,6 +143,8 @@ void buttonsPushed()
 			lcd.print("SPEED          ");
 			interrupts();
 			Serial.println("SPEED");
+
+			
 			break;
 
 		case btnNONE:
