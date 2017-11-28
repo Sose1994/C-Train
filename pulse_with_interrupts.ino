@@ -21,11 +21,7 @@ char testing = true;
 
 
 unsigned char isRunAgain = false;
-unsigned char bitMask = 0x80;       // 0x80 = 10000000
-//unsigned char address = 0;
-//unsigned char order = 0;
-//unsigned char checksum  = 0x0;
-
+unsigned char bitMask = 0x80;
 char state = 0;
 //-------------------------------------------------------------------------------------------------------------//
 unsigned char trainAddress = 40; //0x24 = 36, 0x28 = 40
@@ -44,12 +40,18 @@ unsigned char accessorySwitch = 0;
 //unsigned char accessoryOrder = 0;
 unsigned char packetType = 0;
 
+char sound = false;
+char horn1 = false;
+char horn2 = false;
+char bell  = false;
+char light = false;
+
+
 struct Packet
 {
 	unsigned char address;
 	unsigned char order;
 	unsigned char checksum;
-	
 };
 
 enum functionMode
@@ -57,13 +59,19 @@ enum functionMode
 	ADDRESS,
 	DIRECTION,
 	SPEED,
-	ACC_NUMBER, 
-	ACC_DIRECTION
+	SOUND,
+	HORN1,
+	HORN2,
+	BELL,
+	LIGHT
 };
+
+enum functionMode currentFunctionMode;
 
 struct Packet baselinePacket;
 struct Packet idlePacket;
 struct Packet accessoryPacket;
+struct Packet soundPacket;
 
 struct Packet *pointerCurrentPacket = &baselinePacket;
 
@@ -82,81 +90,325 @@ int read_LCD_buttons()
 	return btnNONE;
 }
 
+/*void selectFunction()
+{
+	switch (current)
+	{
+		case ADDRESS:
+			noInterrupts();
+			lcd.print("ADDRESS F");
 
+			if (lcd_key == btnSELECT)
+			{
+				current = DIRECTION;
+				break;
+			}
+			interrupts();
+		break;
+
+		case DIRECTION:
+			noInterrupts();
+			lcd.print("DIRECTION");
+			interrupts();
+		break;
+	}
+}*/
 
 void buttonsPushed()
 {
 	switch (lcd_key)
 	{
 		case btnUP: //Trainspeed goes up by 1
-      		if (trainSpeed == 30)
-			{
-				trainSpeed = 30;
-			}
-			else
-			{
-				trainSpeed = trainSpeed + 1;
-				creatingOrder();
-			}
- 
-			noInterrupts();
-      		lcd.setCursor(0,0);
-		  	lcd.print("UP            ");
-		  	lcd.setCursor(0, 1);
-			lcd.print(trainSpeed);
-			interrupts();
+      		switch (currentFunctionMode)
+      		{
+      			case SPEED:
+      					if (trainSpeed == 30)
+						{
+							trainSpeed = 30;
+						}
+						else
+						{
+							trainSpeed = trainSpeed + 1;
+							packetType = 0;
+							baselineSetup();
+						}
+			 
+						noInterrupts();
+			      		lcd.setCursor(0,0);
+					  	lcd.print("UP            ");
+					  	lcd.setCursor(0, 1);
+						lcd.print(trainSpeed);
+						interrupts();
 
-			Serial.print("UP ");
-			Serial.println(trainSpeed);
+						Serial.print("UP ");
+						Serial.println(trainSpeed);
+      					break;
+				case ADDRESS:
+
+						if (trainAddress == 253)
+						{
+							trainAddress = 253;
+						}
+						else
+						{
+							trainAddress = trainAddress + 1;
+							packetType = 0;
+							baselineSetup();
+						}
+			 
+						noInterrupts();
+			      		lcd.setCursor(0,0);
+					  	lcd.print("UP            ");
+					  	lcd.setCursor(0, 1);
+						lcd.print(trainAddress);
+						interrupts();
+
+						Serial.print("UP ");
+						Serial.println(trainAddress);
+      					break;
+				case SOUND: 
+						
+						sound = true; horn1 = false; horn2 = false; bell = false; light = false;
+						noInterrupts();
+						lcd.setCursor(0, 1);
+						lcd.print("ON     ");
+						packetType = 3;
+						soundSetup();
+						interrupts();
+				
+				case HORN1:
+						sound = false; horn1 = true; horn2 = false; bell = false; light = false;
+						noInterrupts();
+						lcd.setCursor(0, 1);
+						lcd.print("ON     ");
+						packetType = 3;
+						soundSetup();
+						interrupts();
+						
+				case HORN2:
+						sound = false; horn1 = false; horn2 = true; bell = false; light = false;
+						noInterrupts();
+						lcd.setCursor(0, 1);
+						lcd.print("ON     ");
+						packetType = 3;
+						soundSetup();
+						interrupts();
+					
+				case BELL:
+						sound = false; horn1 = false; horn2 = false; bell = true; light = false;
+						noInterrupts();
+						lcd.setCursor(0, 1);
+						lcd.print("ON     ");
+						packetType = 3;
+						soundSetup();
+						interrupts();
+				case LIGHT:
+						sound = false; horn1 = false; horn2 = false; bell = false; light = true;
+						noInterrupts();
+						lcd.setCursor(0, 1);
+						lcd.print("ON     ");
+						packetType = 3;
+						soundSetup();
+						interrupts();
+      		}
 			break;
 
 		case btnDOWN: //Trainspeed goes down by 1			
-		  	if (trainSpeed == 0)
-			{
-				trainSpeed = 0;
-			}
-			else 
-			{
-				trainSpeed = trainSpeed - 1;
-				creatingOrder();
-			}
-		
-			noInterrupts();
-		  	lcd.setCursor(0, 0);
-			lcd.print("DOWN           ");
-			lcd.setCursor(0, 1);
-			lcd.print(trainSpeed);
-			interrupts();
+		  	switch (currentFunctionMode)
+		  	{
+		  		case SPEED:
+		  				if (trainSpeed == 0)
+						{
+							trainSpeed = 0;
+						}
+						else 
+						{
+							trainSpeed = trainSpeed - 1;
+							packetType = 0;
+							baselineSetup();
+						}
+					
+						noInterrupts();
+					  	lcd.setCursor(0, 0);
+						lcd.print("DOWN           ");
+						lcd.setCursor(0, 1);
+						lcd.print(trainSpeed);
+						interrupts();
 
 
-			Serial.print("DOWN ");
-			Serial.println(trainSpeed);
+						Serial.print("DOWN ");
+						Serial.println(trainSpeed);
+						break;
+				case ADDRESS:
+						if (trainAddress == 253)
+						{
+							trainAddress = 253;
+						}
+						else
+						{
+							trainAddress = trainAddress + 1;
+							packetType = 0;
+							baselineSetup();
+						}
+			 
+						noInterrupts();
+			      		lcd.setCursor(0,0);
+					  	lcd.print("UP            ");
+					  	lcd.setCursor(0, 1);
+						lcd.print(trainAddress);
+						interrupts();
+
+						Serial.print("UP ");
+						Serial.println(trainAddress);
+      					break;
+				case SOUND: 
+						sound = false; horn1 = false; horn2 = false; bell = false; light = false;
+						packetType = 3;
+						noInterrupts();
+						lcd.setCursor(0, 1);
+						lcd.print("OFF     ");
+						soundSetup();
+						interrupts();
+						
+				case HORN1:
+						sound = false; horn1 = false; horn2 = false; bell = false; light = false;
+						packetType = 3;
+						noInterrupts();
+						lcd.setCursor(0, 1);
+						lcd.print("OFF     ");
+						soundSetup();
+						interrupts();
+						
+				case HORN2:
+						sound = false; horn1 = false; horn2 = false; bell = false; light = false;
+						packetType = 3;
+						noInterrupts();
+						lcd.setCursor(0, 1);
+						lcd.print("OFF     ");
+						soundSetup();
+						interrupts();
+						
+				case BELL:
+						sound = false; horn1 = false; horn2 = false; bell = false; light = false;
+						packetType = 3;
+						noInterrupts();
+						lcd.setCursor(0, 1);
+						lcd.print("OFF     ");
+						soundSetup();
+						interrupts();
+						
+				case LIGHT:
+						sound = false; horn1 = false; horn2 = false; bell = false; light = false;
+						packetType = 3;
+						noInterrupts();
+						lcd.setCursor(0, 1);
+						lcd.print("OFF     ");
+						soundSetup();
+						interrupts();
+						
+
+		  	}
 			break;
 
 		case btnLEFT:
 
+			switch (currentFunctionMode)
+			{
+				case DIRECTION:
+							trainDirection = 1;
+							baselineSetup();
 
-			noInterrupts();
-			lcd.setCursor(0, 0);
-			lcd.print("LEFT  ");
-			interrupts();
-			Serial.println("LEFT");
+							noInterrupts();
+							lcd.setCursor(0, 0);
+							lcd.print("FORWARDS    ");
+							interrupts();
+							Serial.println("FORWARDS   ");
+							break;
+			}
 			break;
 
 		case btnRIGHT:
-			noInterrupts();
-			lcd.setCursor(0, 0);
-			lcd.print("RIGHT");
-			interrupts();
-			Serial.println("RIGHT");
+			
+			switch (currentFunctionMode)
+			{
+				case DIRECTION:
+							trainDirection = 0;
+							baselineSetup();
+
+							noInterrupts();
+							lcd.setCursor(0, 0);
+							lcd.print("BACKWARDS         ");
+							interrupts();
+							Serial.println("BACKWARDS        ");
+							break;
+						}
 			break;
 
 		case btnSELECT: //Iterate through the different things to do
 			noInterrupts();
 			lcd.setCursor(0, 0);
-			lcd.print("SPEED          ");
+			lcd.print("SELECT             ");
+			//Serial.println("SPEED");
+
+			switch (currentFunctionMode)
+			{
+				case ADDRESS:
+						lcd.setCursor(0, 0);
+						lcd.print("DIRECTION           ");
+						pointerCurrentPacket = &baselinePacket;
+						currentFunctionMode = DIRECTION;	
+						break;
+				case DIRECTION:
+						lcd.setCursor(0, 0);
+						lcd.print("SPEED         ");
+						pointerCurrentPacket = &baselinePacket;
+						currentFunctionMode = SPEED;
+						break;
+
+				case SPEED:
+						lcd.setCursor(0, 0);
+						lcd.print("SOUND            ");
+						pointerCurrentPacket = &soundPacket;
+						currentFunctionMode = SOUND;
+						break; 
+
+				case SOUND:
+						lcd.setCursor(0, 0);
+						lcd.print("HORN1        ");
+						pointerCurrentPacket = &soundPacket;
+						currentFunctionMode = HORN1;
+						break;
+
+				case HORN1:
+						lcd.setCursor(0, 0);
+						lcd.print("HORN2         ");
+						pointerCurrentPacket = &soundPacket;
+						currentFunctionMode = HORN2;
+						break;
+
+				case HORN2:
+						lcd.setCursor(0, 0);
+						lcd.print("BELL        ");
+						pointerCurrentPacket = &soundPacket;
+						currentFunctionMode = BELL;
+						break;
+
+				case BELL:
+						lcd.setCursor(0, 0);
+						lcd.print("LIGHT        ");
+						pointerCurrentPacket = &soundPacket;
+						currentFunctionMode = LIGHT;
+						break;
+
+				case LIGHT:
+						lcd.setCursor(0, 0);
+						lcd.print("ADDRESS        ");
+						pointerCurrentPacket = &baselinePacket;
+						currentFunctionMode = ADDRESS;
+						break;
+			}
 			interrupts();
-			Serial.println("SPEED");
+
 			break;
 
 		case btnNONE:
@@ -164,96 +416,106 @@ void buttonsPushed()
 	}
 }
 
+void idleSetup()
+{
+	idlePacket.address = 0xFF;
+	idlePacket.order = 0x0;
+	idlePacket.checksum = 0xFF;
+}
 
-void creatingOrder()
+void accessorySetup()
+{
+	unsigned char accessoryOrder = 0;
+	unsigned char accessoryAddress = 0;
+
+	if (accessoryNumber % 4 == 0)
+	{
+		accessoryAddress = accessoryNumber/4;
+		accessoryOutput = accessoryNumber % 4;
+	}
+	else
+	{
+		accessoryAddress = accessoryNumber / 4 +1;
+		accessoryOutput = accessoryNumber % 4 -1;
+	}
+	accessoryAddress |= 0x80;
+	
+	accessoryOrder |= 0xF8;
+	accessoryOrder |= (accessoryOutput << 1);
+	accessoryOrder |= accessoryDirection;
+
+	accessoryPacket.address = accessoryAddress;
+	accessoryPacket.order = accessoryOrder;
+	accessoryPacket.checksum = accessoryPacket.address ^ accessoryPacket.order;
+}
+
+void baselineSetup()
 {
 	unsigned char DCCspeed = 0;
 	unsigned char trainOrder = 0x40;
-	unsigned char accessoryOrder = 0;
-	unsigned char accessoryAddress = 0;
  	DCCspeed = trainSpeed;
 
- 	 	//if the direction is set to 1, then
+
 	if (trainDirection == 1)
 	{
-		trainOrder |= 0x20;
+		trainOrder |= 0x20; //0010 0000
 	}
 	
-	//
 	if (1 & DCCspeed == 1)
 	{
 		DCCspeed |= 0x20;
-		//lcd.setCursor(1, 8);
-		//lcd.print(trainSpeed);
 	}
-	
 	DCCspeed >>= 1;
 	trainOrder |= DCCspeed;
-	//lcd.setCursor(1, 9);
-	//lcd.print(trainSpeed);
-
-	//Calculates the accessory address
-	//Starts at zero, then you divide the accessoryNumber with 4. and plus it one. You set your accessoryAddress to that.
-	//That turns into 00010111
-	accessoryAddress = (accessoryNumber/4) + 1;
-	//After you calculate accessoryAddress, you compare it to 0x80. 
-	//Meaning a bitwise OR operation...
-
-	// AccessoryAddress - 00010111
-	//       0x80      - 01010000
-	//       result      01010111
-	accessoryAddress |= 0x80;
-
-	accessoryOutput = (accessoryNumber % 4) - 1;
-	if (accessoryOutput < 0) 
-	{
-		accessoryOutput = 3;
-	}
-
-	// 0xF8 = 11111000
-	//So we put the accessory order to be like the one above since it was 0
-	accessoryOrder |= 0xF8;
-
-	//Then we first bitshift accessoryoutput 
-	accessoryOrder |= (accessoryOutput << 1);
-
-	accessoryOrder |= accessoryDirection;
 
 
-	if (packetType == 0)
-	{
-		baselinePacket.address = trainAddress;
-		baselinePacket.order = trainOrder;
-		baselinePacket.checksum = baselinePacket.address ^ baselinePacket.order;
-	}
-	else if (packetType == 1)
-	{
-		accessoryPacket.address = accessoryAddress;
-		accessoryPacket.order = accessoryOrder;
-		accessoryPacket.checksum = accessoryPacket.address ^ accessoryPacket.order;
-	}
+	baselinePacket.address = trainAddress;
+	baselinePacket.order = trainOrder;
+	baselinePacket.checksum = baselinePacket.address ^ baselinePacket.order;
 }
+
+void soundSetup()
+{
+	unsigned char temporaryOrder = 0x80;
+
+	if (sound) temporaryOrder |= 0x1;
+	if (horn1) temporaryOrder |= 0x2;
+	if (horn2) temporaryOrder |= 0x4;
+	if (bell)  temporaryOrder |= 0x8;
+	if (light) temporaryOrder |= 0x10;
+
+	soundPacket.address = trainAddress;
+	soundPacket.order = temporaryOrder;
+	soundPacket.checksum = soundPacket.address ^ soundPacket.order;
+}
+
 
 void setup() 
 {
   // put your setup code here, to run once:
-	//We set the lcd screen to how many rows and columns
 	lcd.begin(16, 2);
-	//We put the cursor at the top lefr corner
 	lcd.setCursor(0, 0);
-
-	//we print out on the lcd some text
 	lcd.print("Embedded C/Tog");
 
-	creatingOrder();
+	if (packetType == 0)
+	{
+		baselineSetup();
+	}
+	else if (packetType == 1)
+	{
+		accessorySetup();
+	}
+	else if (packetType == 2)
+	{
+		idleSetup();
+	}
+	else if (packetType == 3)
+	{
+		soundSetup();
+	}
 	
 	pinMode(OUTPIN, OUTPUT);
   	Serial.begin(9600);
-
-
-	lcd.setCursor(1, 1);
-	lcd.print(trainSpeed);
-	//Serial.print(trainSpeed);
 
 	timer2_setup();
 }
