@@ -168,48 +168,55 @@ void buttonsPushed()
       					break;
 				case SOUND: 
 						
-						sound = true; horn1 = false; horn2 = false; bell = false; light = false;
-						noInterrupts();
+						sound = true;
 						lcd.setCursor(0, 1);
+						noInterrupts();
 						lcd.print("ON     ");
+						interrupts();
 						packetType = 3;
 						soundSetup();
-						interrupts();
+						break;		
 				
 				case HORN1:
-						sound = false; horn1 = true; horn2 = false; bell = false; light = false;
-						noInterrupts();
+						horn1 = true;
 						lcd.setCursor(0, 1);
+						noInterrupts();
 						lcd.print("ON     ");
+						interrupts();
 						packetType = 3;
 						soundSetup();
-						interrupts();
+						break;
 						
 				case HORN2:
-						sound = false; horn1 = false; horn2 = true; bell = false; light = false;
-						noInterrupts();
+						horn2 = true;
 						lcd.setCursor(0, 1);
+						noInterrupts();
 						lcd.print("ON     ");
+						interrupts();
 						packetType = 3;
 						soundSetup();
-						interrupts();
+						break;	
 					
 				case BELL:
-						sound = false; horn1 = false; horn2 = false; bell = true; light = false;
-						noInterrupts();
+						bell = true;
+						
 						lcd.setCursor(0, 1);
+						noInterrupts();
 						lcd.print("ON     ");
+						interrupts();
 						packetType = 3;
 						soundSetup();
-						interrupts();
+						break;		
 				case LIGHT:
-						sound = false; horn1 = false; horn2 = false; bell = false; light = true;
-						noInterrupts();
+						light = true;
+						
 						lcd.setCursor(0, 1);
+						noInterrupts();
 						lcd.print("ON     ");
+						interrupts();
 						packetType = 3;
 						soundSetup();
-						interrupts();
+						break;
       		}
 			break;
 
@@ -246,7 +253,7 @@ void buttonsPushed()
 						}
 						else
 						{
-							trainAddress = trainAddress + 1;
+							trainAddress = trainAddress - 1;
 							packetType = 0;
 							baselineSetup();
 						}
@@ -257,27 +264,30 @@ void buttonsPushed()
 					  	lcd.setCursor(0, 1);
 						lcd.print(trainAddress);
 						interrupts();
-
 						Serial.print("UP ");
 						Serial.println(trainAddress);
       					break;
 				case SOUND: 
 						sound = false; horn1 = false; horn2 = false; bell = false; light = false;
 						packetType = 3;
-						noInterrupts();
+						
 						lcd.setCursor(0, 1);
+						noInterrupts();
 						lcd.print("OFF     ");
-						soundSetup();
 						interrupts();
+						soundSetup();
+						break;
 						
 				case HORN1:
 						sound = false; horn1 = false; horn2 = false; bell = false; light = false;
 						packetType = 3;
-						noInterrupts();
+						
 						lcd.setCursor(0, 1);
+						noInterrupts();
 						lcd.print("OFF     ");
-						soundSetup();
 						interrupts();
+						soundSetup();
+						break;
 						
 				case HORN2:
 						sound = false; horn1 = false; horn2 = false; bell = false; light = false;
@@ -287,24 +297,28 @@ void buttonsPushed()
 						lcd.print("OFF     ");
 						soundSetup();
 						interrupts();
-						
+						break;
 				case BELL:
 						sound = false; horn1 = false; horn2 = false; bell = false; light = false;
 						packetType = 3;
-						noInterrupts();
+						
 						lcd.setCursor(0, 1);
+						noInterrupts();
 						lcd.print("OFF     ");
-						soundSetup();
 						interrupts();
+						soundSetup();
+						break;
 						
 				case LIGHT:
 						sound = false; horn1 = false; horn2 = false; bell = false; light = false;
 						packetType = 3;
-						noInterrupts();
+						
 						lcd.setCursor(0, 1);
+						noInterrupts();
 						lcd.print("OFF     ");
-						soundSetup();
 						interrupts();
+						soundSetup();
+						break;
 						
 
 		  	}
