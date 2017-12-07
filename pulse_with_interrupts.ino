@@ -12,17 +12,17 @@ int adc_key_in = 0;
 #define btnSELECT 4
 #define btnNONE   5
 
-char OUTPIN = 5;
+char OUTPIN = 16;
 char whichBit = 0;
 char prevHighOrLow = 0;
 char highOrLow = 0;
 char counter = 0;
-char testing = true;
+char testing = false;
 
 
 unsigned char isRunAgain = false;
-unsigned char bitMask = 0x80;
-char state = 0;
+unsigned char bitMask = 0x80; //10000000
+char state = 0; //preamble, adress, order
 //-------------------------------------------------------------------------------------------------------------//
 unsigned char trainAddress = 40; //0x24 = 36, 0x28 = 40
 //unsigned char trainOrder = 0x40; // 0x40 = 01000000
@@ -63,7 +63,8 @@ enum functionMode
 	HORN1,
 	HORN2,
 	BELL,
-	LIGHT
+	LIGHT,
+	ACC_DIRECTION
 };
 
 enum functionMode currentFunctionMode;
@@ -89,30 +90,6 @@ int read_LCD_buttons()
 	if (adc_key_in < 790)  return btnSELECT;
 	return btnNONE;
 }
-
-/*void selectFunction()
-{
-	switch (current)
-	{
-		case ADDRESS:
-			noInterrupts();
-			lcd.print("ADDRESS F");
-
-			if (lcd_key == btnSELECT)
-			{
-				current = DIRECTION;
-				break;
-			}
-			interrupts();
-		break;
-
-		case DIRECTION:
-			noInterrupts();
-			lcd.print("DIRECTION");
-			interrupts();
-		break;
-	}
-}*/
 
 void buttonsPushed()
 {
@@ -329,14 +306,24 @@ void buttonsPushed()
 			switch (currentFunctionMode)
 			{
 				case DIRECTION:
+							packetType = 0;
 							trainDirection = 1;
 							baselineSetup();
 
 							noInterrupts();
-							lcd.setCursor(0, 0);
+							lcd.setCursor(0, 1);
 							lcd.print("FORWARDS    ");
 							interrupts();
 							Serial.println("FORWARDS   ");
+							break;
+				case ACC_DIRECTION:
+							packetType = 1;
+							accessoryDirection = 1;
+							accessorySetup();
+							noInterrupts();
+							lcd.setCursor(0, 1);
+							lcd.print("LIGEUD       ");
+							interrupts();
 							break;
 			}
 			break;
@@ -346,16 +333,26 @@ void buttonsPushed()
 			switch (currentFunctionMode)
 			{
 				case DIRECTION:
+							packetType = 0;
 							trainDirection = 0;
 							baselineSetup();
 
 							noInterrupts();
-							lcd.setCursor(0, 0);
+							lcd.setCursor(0, 1);
 							lcd.print("BACKWARDS         ");
 							interrupts();
-							Serial.println("BACKWARDS        ");
 							break;
-						}
+
+				case ACC_DIRECTION:
+							packetType = 1;
+							accessoryDirection = 0;
+							accessorySetup();
+							noInterrupts();
+							lcd.setCursor(0, 1);
+							lcd.print("DREJ           ");
+							interrupts();
+							break;
+			}
 			break;
 
 		case btnSELECT: //Iterate through the different things to do
@@ -416,7 +413,14 @@ void buttonsPushed()
 
 				case LIGHT:
 						lcd.setCursor(0, 0);
-						lcd.print("ADDRESS        ");
+						lcd.print("ACCESSORY        ");
+						pointerCurrentPacket = &accessoryPacket;
+						currentFunctionMode = ACC_DIRECTION;
+						break;
+
+				case ACC_DIRECTION:
+						lcd.setCursor(0, 0);
+						lcd.print("ADDRESS       ");
 						pointerCurrentPacket = &baselinePacket;
 						currentFunctionMode = ADDRESS;
 						break;
@@ -445,12 +449,12 @@ void accessorySetup()
 	if (accessoryNumber % 4 == 0)
 	{
 		accessoryAddress = accessoryNumber/4;
-		accessoryOutput = accessoryNumber % 4;
+		accessoryOutput = 3;
 	}
 	else
 	{
-		accessoryAddress = accessoryNumber / 4 +1;
-		accessoryOutput = accessoryNumber % 4 -1;
+		accessoryAddress = (accessoryNumber / 4) +1;
+		accessoryOutput = (accessoryNumber % 4) -1;
 	}
 	accessoryAddress |= 0x80;
 	
@@ -461,6 +465,9 @@ void accessorySetup()
 	accessoryPacket.address = accessoryAddress;
 	accessoryPacket.order = accessoryOrder;
 	accessoryPacket.checksum = accessoryPacket.address ^ accessoryPacket.order;
+	//Serial.print(accessoryPacket.address);
+	//Serial.print("  ");
+	//Serial.println(accessoryPacket.order);
 }
 
 void baselineSetup()
@@ -583,7 +590,7 @@ void sendPacket()
 					}
 					break;
 
-			case 1: //address
+			case 1: //address                  dereference
 					whichBit = ((bitMask & ((*pointerCurrentPacket).address))== 0 ? 0 : 1); 
 
 					if (counter == 8)
